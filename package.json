@@ -1,0 +1,22 @@
+{
+  "name": "senti-lucy",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node src/server.js",
+    "start": "node src/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.89.0",
+    "@kamino-finance/klend-sdk": "^7.3.22",
+    "@solana/web3.js": "^1.98.4",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1"
+  }
+}
