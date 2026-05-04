@@ -3738,7 +3738,10 @@
       // Deeplink there so the page reloads with the provider available.
       const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
       if (isMobile) {
-        const target = window.location.href;
+        // Tag the URL so the page knows to auto-connect once it reopens inside Phantom.
+        const url = new URL(window.location.href);
+        url.searchParams.set('wc', 'phantom');
+        const target = url.toString();
         const ref = window.location.origin;
         window.location.href = `https://phantom.app/ul/browse/${encodeURIComponent(target)}?ref=${encodeURIComponent(ref)}`;
         return;
@@ -5719,6 +5722,30 @@
 
   // Dashboard is the default visible page on load — start its countdown once.
   dashboardBoot();
+
+  // If we just arrived from a Phantom deeplink, auto-trigger the connect prompt.
+  // Phantom may inject window.solana slightly after load, so poll briefly.
+  (function autoConnectFromPhantomDeeplink() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('wc') !== 'phantom') return;
+    // Strip the flag so a refresh doesn't re-trigger the prompt.
+    params.delete('wc');
+    const cleanQuery = params.toString();
+    const cleanUrl = window.location.pathname + (cleanQuery ? '?' + cleanQuery : '') + window.location.hash;
+    window.history.replaceState({}, '', cleanUrl);
+
+    let tries = 0;
+    const maxTries = 20; // ~3s total
+    const tick = () => {
+      if (window.solana && window.solana.isPhantom) {
+        openWalletModal();
+        connectPhantom();
+        return;
+      }
+      if (++tries < maxTries) setTimeout(tick, 150);
+    };
+    tick();
+  })();
 </script>
 <!-- Solana web3.js — exposes window.solanaWeb3 -->
 <script src="https://unpkg.com/@solana/web3.js@1.98.4/lib/index.iife.min.js"></script>
