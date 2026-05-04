@@ -3734,7 +3734,16 @@
 
   async function connectPhantom() {
     if (!window.solana || !window.solana.isPhantom) {
-      // Phantom not installed — fall through to manual entry with a hint
+      // On mobile, window.solana is only injected inside Phantom's in-app browser.
+      // Deeplink there so the page reloads with the provider available.
+      const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+      if (isMobile) {
+        const target = window.location.href;
+        const ref = window.location.origin;
+        window.location.href = `https://phantom.app/ul/browse/${encodeURIComponent(target)}?ref=${encodeURIComponent(ref)}`;
+        return;
+      }
+      // Desktop without the extension — fall through to manual entry with a hint
       document.getElementById('manual-addr-input').placeholder = 'Phantom not found — paste your Solana address here';
       document.getElementById('manual-addr-input').focus();
       return;
