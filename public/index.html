@@ -3591,7 +3591,26 @@
 </div>
 <script>
   // ── CONSTANTS ───────────────────────────────────────────────────────────────
-  const API = 'http://localhost:3001';
+  // Backend URL. Resolution order:
+  //   1. ?api=<url> on the page URL  → saved to localStorage for future visits
+  //   2. localStorage value          → set by a previous visit
+  //   3. localhost:3001              → when running on localhost (dev)
+  //   4. empty string                → forces a clear "API not configured" failure in prod
+  const API = (() => {
+    const fromQuery = new URLSearchParams(location.search).get('api');
+    if (fromQuery) {
+      try { localStorage.setItem('senti_api', fromQuery.replace(/\/$/, '')); } catch (_) {}
+      return fromQuery.replace(/\/$/, '');
+    }
+    try {
+      const saved = localStorage.getItem('senti_api');
+      if (saved) return saved;
+    } catch (_) {}
+    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+      return 'http://localhost:3001';
+    }
+    return '';
+  })();
   let WALLET = null;
   let _walletSource = null; // 'phantom' or 'manual' — used to tailor empty-balance hints
   let _navigateAfterConnect = null; // remembered destination when user is gated by wallet check
